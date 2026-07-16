@@ -1,0 +1,6 @@
+{
+  "id": "password",
+  "name": "Email and password",
+  "priority": 190,
+  "description": "Adds local email and password authentication."
+}
