@@ -51,10 +51,12 @@ where redis-cli >nul 2>nul && (
     )
 ) || echo [WARN] redis-cli не найден, проверка Redis пропущена.
 
+call "%~dp0build-frontend.cmd" || exit /b 1
 call "%~dp0check.cmd" || exit /b 1
 
 echo.
 echo [OK] Установка завершена.
-echo Откройте: https://outline.local/health
+echo Откройте: https://outline.local
+echo Проверка сервисов: https://outline.local/health
 echo.
 exit /b 0
