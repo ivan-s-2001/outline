@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Auth;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Db\Connection\ConnectionInterface;
 
@@ -22,7 +23,8 @@ final readonly class SessionService
     {
         $token = bin2hex(random_bytes(32));
         $tokenHash = hash('sha256', $token);
-        $expiresAt = (new DateTimeImmutable())->modify('+' . self::TTL . ' seconds');
+        $expiresAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))
+            ->modify('+' . self::TTL . ' seconds');
 
         $this->database->createCommand(
             <<<'SQL'
@@ -111,17 +113,21 @@ final readonly class SessionService
     public function cookieHeader(string $token, DateTimeImmutable $expiresAt): string
     {
         return sprintf(
-            '%s=%s; Path=/; Expires=%s; Max-Age=%d; Secure; HttpOnly; SameSite=Lax',
+            '%s=%s; Path=/; Expires=%s; Max-Age=%d;%s HttpOnly; SameSite=Lax',
             self::COOKIE_NAME,
             $token,
-            $expiresAt->format('D, d M Y H:i:s') . ' GMT',
+            $expiresAt->setTimezone(new DateTimeZone('GMT'))->format('D, d M Y H:i:s') . ' GMT',
             self::TTL,
+            $this->secureAttribute(),
         );
     }
 
     public function expiredCookieHeader(): string
     {
-        return self::COOKIE_NAME . '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Secure; HttpOnly; SameSite=Lax';
+        return self::COOKIE_NAME
+            . '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0;'
+            . $this->secureAttribute()
+            . ' HttpOnly; SameSite=Lax';
     }
 
     private function extractToken(ServerRequestInterface $request): ?string
@@ -136,5 +142,15 @@ final readonly class SessionService
         $token = $cookies[self::COOKIE_NAME] ?? null;
 
         return is_string($token) && $token !== '' ? $token : null;
+    }
+
+    private function secureAttribute(): string
+    {
+        $url = getenv('APP_URL');
+        if ($url === false || $url === '') {
+            $url = isset($_ENV['APP_URL']) ? (string) $_ENV['APP_URL'] : 'https://outline.local';
+        }
+
+        return str_starts_with(strtolower($url), 'https://') ? ' Secure;' : '';
     }
 }
