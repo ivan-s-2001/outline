@@ -1,0 +1,151 @@
+name: Yii3 MariaDB port
+
+on:
+  push:
+    branches:
+      - agent/yii3-mariadb-outline-port
+  pull_request:
+    paths:
+      - "yii3-backend/**"
+      - "vite.yii3.config.ts"
+      - ".github/workflows/yii3-mariadb-port.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: outline_yii3
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=30
+
+    defaults:
+      run:
+        working-directory: yii3-backend
+
+    env:
+      APP_ENV: test
+      APP_DEBUG: "true"
+      APP_URL: http://127.0.0.1:8080
+      APP_SECRET: 884f28f776e43da74caecb1cc15ac03f46dcaac266cdd126de73bec5c1a93025
+      DB_DRIVER: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_NAME: outline_yii3
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_CHARSET: utf8mb4
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: "6379"
+      REDIS_DATABASE: "0"
+      FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare runtime logs
+        run: mkdir -p runtime
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: ctype, filter, intl, json, mbstring, pdo, pdo_mysql, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer metadata
+        run: composer validate --strict --no-check-publish
+
+      - name: Install PHP dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress 2>&1 | tee runtime/composer-install.log
+
+      - name: Rebuild Yii configuration
+        run: composer yii-config-rebuild
+
+      - name: PHP syntax check
+        run: find src config public -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Import MariaDB schema
+        run: mariadb --protocol=TCP -h 127.0.0.1 -P 3306 -u root -proot outline_yii3 < database/schema.sql
+
+      - name: Verify schema and Redis
+        run: |
+          tables=$(mariadb --protocol=TCP -N -B -h 127.0.0.1 -P 3306 -u root -proot -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='outline_yii3'")
+          test "$tables" -ge 40
+          test "$(redis-cli -h 127.0.0.1 -p 6379 ping)" = "PONG"
+
+      - name: Start Yii application
+        run: |
+          php -S 127.0.0.1:8080 -t public public/index.php > runtime/test-server.log 2>&1 &
+          echo $! > runtime/test-server.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:8080/health > runtime/health.json; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat runtime/test-server.log
+          exit 1
+
+      - name: API smoke tests
+        run: bash tests/smoke.sh
+
+      - name: Upload backend logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yii3-backend-logs
+          if-no-files-found: warn
+          path: |
+            yii3-backend/runtime/*.log
+            yii3-backend/runtime/*.json
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.16.0"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        run: yarn install --immutable
+
+      - name: Build original Outline frontend
+        run: yarn vite build --config vite.yii3.config.ts
+
+      - name: Verify Vite artifacts
+        run: |
+          test -f yii3-backend/public/static/.vite/manifest.json
+          test -n "$(find yii3-backend/public/static/assets -type f -name '*.js' -print -quit)"

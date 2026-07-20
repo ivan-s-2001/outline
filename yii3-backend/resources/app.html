@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{lang}}">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{title}}</title>
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="A modern team knowledge base" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="darkreader-lock" />
+    <link rel="shortcut icon" type="image/png" href="/images/favicon-32.png" sizes="32x32" />
+    <link rel="manifest" href="/static/manifest.webmanifest" />
+    {{styles}}
+    <style>
+      @font-face {
+        font-family: "Inter";
+        font-display: swap;
+        font-feature-settings: "ss03", "cv05";
+        src: url("/fonts/Inter.var.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inter";
+        font-display: swap;
+        font-feature-settings: "ss03", "cv05";
+        font-style: italic;
+        src: url("/fonts/Inter-italic.var.woff2") format("woff2");
+      }
+      html, body { margin: 0; padding: 0; width: 100%; min-height: 100%; }
+      body { display: flex; }
+      #root { flex: 1; width: 100%; min-height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script nonce="{{nonce}}">window.env = {{environment}};</script>
+    <script nonce="{{nonce}}">
+      if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
+        var color = "#111319";
+        document.querySelector("#root").style.background = color;
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", color);
+      }
+    </script>
+    {{scripts}}
+  </body>
+</html>
