@@ -64,6 +64,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare runtime logs
+        run: mkdir -p runtime
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -76,7 +79,10 @@ jobs:
         run: composer validate --strict --no-check-publish
 
       - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        shell: bash
+        run: |
+          set -o pipefail
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress 2>&1 | tee runtime/composer-install.log
 
       - name: Rebuild Yii configuration
         run: composer yii-config-rebuild
@@ -114,6 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yii3-backend-logs
+          if-no-files-found: warn
           path: |
             yii3-backend/runtime/*.log
             yii3-backend/runtime/*.json
@@ -128,7 +135,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.16.0"
-          cache: yarn
 
       - name: Enable Corepack
         run: corepack enable
