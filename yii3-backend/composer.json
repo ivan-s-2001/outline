@@ -25,8 +25,6 @@
         "vlucas/phpdotenv": "^5.6.3",
         "yiisoft/active-record": "^1.1",
         "yiisoft/aliases": "^3.1.1",
-        "yiisoft/cache": "^3.2",
-        "yiisoft/cache-redis": "^2.0",
         "yiisoft/config": "^1.6.2",
         "yiisoft/data": "^2.0",
         "yiisoft/data-response": "^2.2",
