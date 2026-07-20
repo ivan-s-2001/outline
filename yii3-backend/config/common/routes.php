@@ -10,6 +10,11 @@ use App\Api\CollectionsDeleteAction;
 use App\Api\CollectionsInfoAction;
 use App\Api\CollectionsListAction;
 use App\Api\CollectionsUpdateAction;
+use App\Api\CommentsCreateAction;
+use App\Api\CommentsDeleteAction;
+use App\Api\CommentsListAction;
+use App\Api\CommentsResolveAction;
+use App\Api\CommentsUpdateAction;
 use App\Api\DocumentsCreateAction;
 use App\Api\DocumentsDeleteAction;
 use App\Api\DocumentsInfoAction;
@@ -29,7 +34,28 @@ use App\Api\GroupsUsersListAction;
 use App\Api\HealthAction;
 use App\Api\InstallationCreateAction;
 use App\Api\InstallationInfoAction;
+use App\Api\NotificationsDeleteAction;
+use App\Api\NotificationsListAction;
+use App\Api\NotificationsUpdateAction;
+use App\Api\PinsCreateAction;
+use App\Api\PinsDeleteAction;
+use App\Api\PinsListAction;
+use App\Api\ReactionsCreateAction;
+use App\Api\ReactionsDeleteAction;
 use App\Api\RevisionsListAction;
+use App\Api\SharesCreateAction;
+use App\Api\SharesInfoAction;
+use App\Api\SharesListAction;
+use App\Api\SharesRevokeAction;
+use App\Api\SharesUpdateAction;
+use App\Api\StarsCreateAction;
+use App\Api\StarsDeleteAction;
+use App\Api\StarsListAction;
+use App\Api\TemplatesCreateAction;
+use App\Api\TemplatesDeleteAction;
+use App\Api\TemplatesInfoAction;
+use App\Api\TemplatesListAction;
+use App\Api\TemplatesUpdateAction;
 use App\Api\UsersCreateAction;
 use App\Api\UsersDeleteAction;
 use App\Api\UsersInfoAction;
@@ -81,4 +107,36 @@ return [
     Route::post('/api/documents.search')->action(DocumentsSearchAction::class)->name('api/documents.search'),
 
     Route::post('/api/revisions.list')->action(RevisionsListAction::class)->name('api/revisions.list'),
+
+    Route::post('/api/comments.list')->action(CommentsListAction::class)->name('api/comments.list'),
+    Route::post('/api/comments.create')->action(CommentsCreateAction::class)->name('api/comments.create'),
+    Route::post('/api/comments.update')->action(CommentsUpdateAction::class)->name('api/comments.update'),
+    Route::post('/api/comments.resolve')->action(CommentsResolveAction::class)->name('api/comments.resolve'),
+    Route::post('/api/comments.delete')->action(CommentsDeleteAction::class)->name('api/comments.delete'),
+    Route::post('/api/reactions.create')->action(ReactionsCreateAction::class)->name('api/reactions.create'),
+    Route::post('/api/reactions.delete')->action(ReactionsDeleteAction::class)->name('api/reactions.delete'),
+
+    Route::post('/api/stars.list')->action(StarsListAction::class)->name('api/stars.list'),
+    Route::post('/api/stars.create')->action(StarsCreateAction::class)->name('api/stars.create'),
+    Route::post('/api/stars.delete')->action(StarsDeleteAction::class)->name('api/stars.delete'),
+
+    Route::post('/api/pins.list')->action(PinsListAction::class)->name('api/pins.list'),
+    Route::post('/api/pins.create')->action(PinsCreateAction::class)->name('api/pins.create'),
+    Route::post('/api/pins.delete')->action(PinsDeleteAction::class)->name('api/pins.delete'),
+
+    Route::post('/api/templates.list')->action(TemplatesListAction::class)->name('api/templates.list'),
+    Route::post('/api/templates.info')->action(TemplatesInfoAction::class)->name('api/templates.info'),
+    Route::post('/api/templates.create')->action(TemplatesCreateAction::class)->name('api/templates.create'),
+    Route::post('/api/templates.update')->action(TemplatesUpdateAction::class)->name('api/templates.update'),
+    Route::post('/api/templates.delete')->action(TemplatesDeleteAction::class)->name('api/templates.delete'),
+
+    Route::post('/api/notifications.list')->action(NotificationsListAction::class)->name('api/notifications.list'),
+    Route::post('/api/notifications.update')->action(NotificationsUpdateAction::class)->name('api/notifications.update'),
+    Route::post('/api/notifications.delete')->action(NotificationsDeleteAction::class)->name('api/notifications.delete'),
+
+    Route::post('/api/shares.list')->action(SharesListAction::class)->name('api/shares.list'),
+    Route::post('/api/shares.info')->action(SharesInfoAction::class)->name('api/shares.info'),
+    Route::post('/api/shares.create')->action(SharesCreateAction::class)->name('api/shares.create'),
+    Route::post('/api/shares.update')->action(SharesUpdateAction::class)->name('api/shares.update'),
+    Route::post('/api/shares.revoke')->action(SharesRevokeAction::class)->name('api/shares.revoke'),
 ];
