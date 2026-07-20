@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Environment;
+
+return [
+    'config-plugin' => [
+        'params' => 'common/params.php',
+        'params-web' => [
+            '$params',
+            'web/params.php',
+        ],
+        'params-console' => '$params',
+        'di' => 'common/di/*.php',
+        'di-web' => [
+            '$di',
+            'web/di/*.php',
+        ],
+        'di-console' => '$di',
+        'di-delegates' => [],
+        'di-delegates-console' => '$di-delegates',
+        'di-delegates-web' => '$di-delegates',
+        'di-providers' => [],
+        'di-providers-console' => '$di-providers',
+        'di-providers-web' => '$di-providers',
+        'events' => [],
+        'events-console' => '$events',
+        'events-web' => '$events',
+        'bootstrap' => [],
+        'bootstrap-console' => '$bootstrap',
+        'bootstrap-web' => '$bootstrap',
+        'routes' => 'common/routes.php',
+    ],
+    'config-plugin-environments' => [
+        Environment::DEV => [],
+        Environment::TEST => [],
+        Environment::PROD => [],
+    ],
+    'config-plugin-options' => [
+        'source-directory' => 'config',
+    ],
+];
