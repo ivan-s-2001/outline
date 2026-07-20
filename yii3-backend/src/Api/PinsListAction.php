@@ -34,21 +34,19 @@ final readonly class PinsListAction
             $params[':collection_id'] = $collectionId;
         }
 
-        $rows = $database->createCommand(
-            <<<'SQL'
-            SELECT p.*, d.*,
-                   p.id AS pin_id, p.collection_id AS pin_collection_id,
-                   p.created_at AS pin_created_at, p.index_key AS pin_index
+        $sql = <<<SQL
+            SELECT d.*,
+                   p.id AS pin_id,
+                   p.collection_id AS pin_collection_id,
+                   p.created_at AS pin_created_at,
+                   p.index_key AS pin_index
             FROM pins p
             INNER JOIN documents d ON d.id = p.document_id
             WHERE p.team_id = :team_id
-              AND %s
+              AND {$condition}
               AND d.deleted_at IS NULL
             ORDER BY p.index_key ASC, p.created_at ASC
-            SQL,
-            $params,
-        );
-        $sql = str_replace('%s', $condition, $rows->getRawSql());
+            SQL;
         $result = $database->createCommand($sql, $params)->queryAll();
 
         $pins = [];
@@ -56,7 +54,7 @@ final readonly class PinsListAction
         foreach ($result as $row) {
             $pins[] = [
                 'id' => (string) $row['pin_id'],
-                'documentId' => (string) $row['document_id'],
+                'documentId' => (string) $row['id'],
                 'collectionId' => $row['pin_collection_id'] ?? null,
                 'index' => $row['pin_index'] ?? null,
                 'createdAt' => $row['pin_created_at'] ?? null,
