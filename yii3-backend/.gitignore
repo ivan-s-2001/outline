@@ -1,0 +1,9 @@
+/.env
+/vendor/
+/runtime/*
+!/runtime/.gitkeep
+!/runtime/uploads/
+!/runtime/uploads/.gitkeep
+composer.lock
+.phpunit.result.cache
+/.php-cs-fixer.cache
